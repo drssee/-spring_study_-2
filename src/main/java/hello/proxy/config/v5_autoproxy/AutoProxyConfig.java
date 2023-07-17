@@ -6,6 +6,7 @@ import hello.proxy.config.v3_proxyfactory.advice.LogTraceAdvice;
 import hello.proxy.config.v3_proxyfactory.advice.LogTraceAdvice2;
 import hello.proxy.trace.logtrace.LogTrace;
 import org.springframework.aop.Advisor;
+import org.springframework.aop.aspectj.AspectJExpressionPointcut;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
 import org.springframework.aop.support.NameMatchMethodPointcut;
 import org.springframework.context.annotation.Bean;
@@ -26,11 +27,31 @@ public class AutoProxyConfig {
         (주의)포인트컷은 빈후처리기에서 프록시객체 생성여부를 판단할때 1번,
         프록시객체 호출시 해당 메서드에 어드바이스 코드를 적용할지 판단할때 2번 사용된다
      */
-    @Bean
+//    @Bean
     public Advisor advisor1(LogTrace logTrace) {
         //pointcut
         NameMatchMethodPointcut pointcut = new NameMatchMethodPointcut();
         pointcut.setMappedNames("request*", "order*", "save*");
+        //advice
+        LogTraceAdvice advice = new LogTraceAdvice(logTrace);
+        return new DefaultPointcutAdvisor(pointcut, advice);
+    }
+
+//    @Bean
+    public Advisor advisor2(LogTrace logTrace) {
+        //pointcut
+        AspectJExpressionPointcut pointcut = new AspectJExpressionPointcut();
+        pointcut.setExpression("execution(* hello.proxy.app..*(..))");
+        //advice
+        LogTraceAdvice advice = new LogTraceAdvice(logTrace);
+        return new DefaultPointcutAdvisor(pointcut, advice);
+    }
+
+//    @Bean
+    public Advisor advisor3(LogTrace logTrace) {
+        //pointcut
+        AspectJExpressionPointcut pointcut = new AspectJExpressionPointcut();
+        pointcut.setExpression("execution(* hello.proxy.app..*(..)) && !execution(* hello.proxy.app..noLog(..))");
         //advice
         LogTraceAdvice advice = new LogTraceAdvice(logTrace);
         return new DefaultPointcutAdvisor(pointcut, advice);
